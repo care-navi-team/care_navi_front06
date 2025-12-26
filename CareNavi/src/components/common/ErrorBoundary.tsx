@@ -110,14 +110,14 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
   },
   retryButton: {
-    backgroundColor: '#4A90D9',
+    backgroundColor: '#2bee6c',
     paddingHorizontal: 32,
     paddingVertical: 14,
-    borderRadius: 12,
+    borderRadius: 24,
   },
   retryButtonText: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#FFF',
+    color: '#1a1a1a',
   },
 });
