@@ -19,6 +19,7 @@
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = CareNavi/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = CareNavi/Info.plist; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = CareNavi/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		2581A5052EF2CD6E005FC478 /* CareNavi.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = CareNavi.entitlements; path = CareNavi/CareNavi.entitlements; sourceTree = "<group>"; };
 		3E38BDDB4DF4551F77C49B2B /* Pods-CareNavi.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CareNavi.release.xcconfig"; path = "Target Support Files/Pods-CareNavi/Pods-CareNavi.release.xcconfig"; sourceTree = "<group>"; };
 		761780EC2CA45674006654EE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = CareNavi/AppDelegate.swift; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = CareNavi/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -42,6 +43,7 @@
 		13B07FAE1A68108700A75B9A /* CareNavi */ = {
 			isa = PBXGroup;
 			children = (
+				2581A5052EF2CD6E005FC478 /* CareNavi.entitlements */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
@@ -259,6 +261,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = CareNavi/CareNavi.entitlements;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = NR4Y2WD2S7;
 				ENABLE_BITCODE = NO;
@@ -288,6 +291,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_ENTITLEMENTS = CareNavi/CareNavi.entitlements;
 				CURRENT_PROJECT_VERSION = 3;
 				DEVELOPMENT_TEAM = NR4Y2WD2S7;
 				INFOPLIST_FILE = CareNavi/Info.plist;

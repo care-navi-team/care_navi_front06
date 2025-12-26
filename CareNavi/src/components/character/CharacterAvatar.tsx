@@ -1,7 +1,7 @@
 // T064: Character avatar component
 import React from 'react';
-import { View, Image, StyleSheet, ImageSourcePropType } from 'react-native';
-import { CharacterStage } from '../../types';
+import {View, Image, StyleSheet, ImageSourcePropType} from 'react-native';
+import {CharacterStage} from '../../types';
 
 interface CharacterAvatarProps {
   stage: CharacterStage;
@@ -32,8 +32,7 @@ export default function CharacterAvatar({
           height: size,
           borderRadius: size / 2,
         },
-      ]}
-    >
+      ]}>
       <Image
         source={STAGE_IMAGES[stage]}
         style={{
@@ -52,7 +51,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: {width: 0, height: 4},
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 6,

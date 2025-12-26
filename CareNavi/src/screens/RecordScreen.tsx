@@ -1,5 +1,5 @@
 // Record Screen - Weekly Health Report
-import React, { useState } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
   Text,
@@ -8,58 +8,176 @@ import {
   TouchableOpacity,
   Modal,
   Dimensions,
+  RefreshControl,
+  ActivityIndicator,
+  Alert,
+  Platform,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import CharacterAvatar from '../components/character/CharacterAvatar';
-import { useGrowthStore } from '../stores/useGrowthStore';
+import {useGrowthStore} from '../stores/useGrowthStore';
+import {useHealthStore} from '../stores/useHealthStore';
+import RankingModal from '../components/ranking/RankingModal';
+import {getRankingData} from '../data/mockRankingData';
+import {RankingType} from '../types/ranking';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
-// Mock data for weekly report (will be replaced with real data later)
-const MOCK_WEEKLY_DATA = {
-  totalScore: 92,
+const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
+
+// Fallback mock data when health data is unavailable
+const FALLBACK_DATA = {
   medication: {
     completed: 3,
     total: 3,
     status: '잘했어요!',
-  },
-  sleep: {
-    hours: 7.5,
-    status: '좋음',
-    weeklyData: [6, 7, 5.5, 7.5, 8, 7, 7.5], // Mon-Sun
-  },
-  steps: {
-    count: 8500,
-    status: '목표 달성',
   },
   diet: {
     status: '균형 잡힘',
     rating: '양호',
   },
   weeklyMedication: {
-    // true = completed, false = missed
     data: [
-      [true, true], // Mon
-      [true, true], // Tue
-      [true, true], // Wed
-      [true, true], // Thu
-      [true, false], // Fri
-      [true, true], // Sat
-      [true, true], // Sun
+      [true, true],
+      [true, true],
+      [true, true],
+      [true, true],
+      [true, false],
+      [true, true],
+      [true, true],
     ],
     compliance: 95,
   },
-  weeklySteps: 58000,
   weeklyActivityMinutes: 320,
   healthTip: '물을 더 자주 마셔요!',
 };
 
-const DAYS = ['월', '화', '수', '목', '금', '토', '일'];
-
 export default function RecordScreen() {
   const [showDetailModal, setShowDetailModal] = useState(false);
-  const { stage } = useGrowthStore();
-  const data = MOCK_WEEKLY_DATA;
+  const [refreshing, setRefreshing] = useState(false);
+  const [rankingModalVisible, setRankingModalVisible] = useState(false);
+  const [selectedRankingType, setSelectedRankingType] = useState<RankingType | null>(null);
+  const {stage} = useGrowthStore();
+
+  const openRankingModal = (type: RankingType) => {
+    setSelectedRankingType(type);
+    setRankingModalVisible(true);
+  };
+
+  const closeRankingModal = () => {
+    setRankingModalVisible(false);
+    setSelectedRankingType(null);
+  };
+
+  // Health store
+  const {
+    weeklyData,
+    todaySummary,
+    isLoading,
+    isAvailable,
+    error,
+    checkAvailability,
+    requestPermissions,
+    fetchWeeklyData,
+    fetchTodaySummary,
+    hasPermissions,
+    refreshData,
+  } = useHealthStore();
+
+  // Initialize health data on mount
+  useEffect(() => {
+    initializeHealthData();
+  }, []);
+
+  const initializeHealthData = async () => {
+    // Skip availability check and try to request permissions directly
+    const granted = await requestPermissions();
+
+    if (!granted) {
+      Alert.alert(
+        '권한 요청 결과',
+        `권한 허용 실패\nisAvailable: ${isAvailable}\nerror: ${error || 'none'}`,
+        [{text: '확인'}],
+      );
+      return;
+    }
+
+    // If we get here, permissions were granted
+    Alert.alert('성공', '건강 데이터 권한이 허용되었습니다!');
+    await Promise.all([fetchWeeklyData(), fetchTodaySummary()]);
+  };
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    if (hasPermissions()) {
+      await refreshData();
+    } else {
+      await initializeHealthData();
+    }
+    setRefreshing(false);
+  }, [hasPermissions, refreshData]);
+
+  // Helper functions for status
+  const getSleepStatus = (hours: number): string => {
+    if (hours >= 7) return '좋음';
+    if (hours >= 6) return '보통';
+    if (hours > 0) return '부족';
+    return '데이터 없음';
+  };
+
+  const getStepsStatus = (steps: number): string => {
+    if (steps >= 10000) return '훌륭해요!';
+    if (steps >= 7000) return '목표 달성';
+    if (steps >= 5000) return '잘하고 있어요';
+    if (steps > 0) return '조금 더 걸어요';
+    return '데이터 없음';
+  };
+
+  const calculateHealthScore = (): number => {
+    let score = 70; // Base score
+
+    // Steps contribution (up to 15 points)
+    const steps = todaySummary?.steps ?? 0;
+    if (steps >= 10000) score += 15;
+    else if (steps >= 7000) score += 12;
+    else if (steps >= 5000) score += 8;
+    else if (steps > 0) score += 4;
+
+    // Sleep contribution (up to 15 points)
+    const sleepHours = todaySummary?.sleepHours ?? 0;
+    if (sleepHours >= 7 && sleepHours <= 9) score += 15;
+    else if (sleepHours >= 6) score += 10;
+    else if (sleepHours > 0) score += 5;
+
+    return Math.min(score, 100);
+  };
+
+  // Build display data
+  const todaySteps = todaySummary?.steps ?? 0;
+  const todaySleepHours = todaySummary?.sleepHours ?? 0;
+  const weeklySleepData = weeklyData?.sleep.map(s => s.hours) ?? [0, 0, 0, 0, 0, 0, 0];
+  const totalWeeklySteps = weeklyData?.totalSteps ?? 0;
+  const averageSleep = weeklyData?.averageSleep ?? 0;
+
+  const data = {
+    totalScore: calculateHealthScore(),
+    medication: FALLBACK_DATA.medication,
+    sleep: {
+      hours: todaySleepHours,
+      status: getSleepStatus(todaySleepHours),
+      weeklyData: weeklySleepData,
+    },
+    steps: {
+      count: todaySteps,
+      status: getStepsStatus(todaySteps),
+    },
+    diet: FALLBACK_DATA.diet,
+    weeklyMedication: FALLBACK_DATA.weeklyMedication,
+    weeklySteps: totalWeeklySteps,
+    weeklyActivityMinutes: FALLBACK_DATA.weeklyActivityMinutes,
+    healthTip: FALLBACK_DATA.healthTip,
+    averageSleep: averageSleep,
+  };
 
   // Get current week date range
   const getWeekRange = () => {
@@ -76,10 +194,6 @@ export default function RecordScreen() {
 
   // Render circular progress
   const renderCircularProgress = (score: number) => {
-    const progress = score / 100;
-    const circumference = 2 * Math.PI * 45;
-    const strokeDashoffset = circumference * (1 - progress);
-
     return (
       <View style={styles.circularProgressContainer}>
         <View style={styles.circularProgress}>
@@ -95,7 +209,7 @@ export default function RecordScreen() {
 
   // Render mini bar chart for sleep
   const renderMiniBarChart = () => {
-    const maxHours = Math.max(...data.sleep.weeklyData);
+    const maxHours = Math.max(...data.sleep.weeklyData, 1);
     return (
       <View style={styles.miniBarChart}>
         {data.sleep.weeklyData.map((hours, index) => (
@@ -103,7 +217,10 @@ export default function RecordScreen() {
             key={index}
             style={[
               styles.miniBar,
-              { height: (hours / maxHours) * 24, backgroundColor: getBarColor(index) },
+              {
+                height: Math.max((hours / maxHours) * 24, 2),
+                backgroundColor: getBarColor(index),
+              },
             ]}
           />
         ))}
@@ -112,7 +229,15 @@ export default function RecordScreen() {
   };
 
   const getBarColor = (index: number) => {
-    const colors = ['#FFB74D', '#81C784', '#64B5F6', '#BA68C8', '#4DB6AC', '#FF8A65', '#A1887F'];
+    const colors = [
+      '#FFB74D',
+      '#81C784',
+      '#64B5F6',
+      '#BA68C8',
+      '#4DB6AC',
+      '#FF8A65',
+      '#A1887F',
+    ];
     return colors[index % colors.length];
   };
 
@@ -124,6 +249,7 @@ export default function RecordScreen() {
     status,
     statusColor = '#4CAF50',
     extra,
+    onRankingPress,
   }: {
     icon: string;
     title: string;
@@ -131,17 +257,53 @@ export default function RecordScreen() {
     status: string;
     statusColor?: string;
     extra?: React.ReactNode;
+    onRankingPress?: () => void;
   }) => (
     <View style={styles.summaryCard}>
       <Text style={styles.cardIcon}>{icon}</Text>
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle}>{title}</Text>
         <Text style={styles.cardValue}>
-          {value} - <Text style={[styles.cardStatus, { color: statusColor }]}>{status}</Text>
+          {value} -{' '}
+          <Text style={[styles.cardStatus, {color: statusColor}]}>{status}</Text>
         </Text>
       </View>
       {extra}
+      {onRankingPress && (
+        <TouchableOpacity style={styles.rankingButton} onPress={onRankingPress}>
+          <Text style={styles.rankingButtonText}>랭킹</Text>
+        </TouchableOpacity>
+      )}
     </View>
+  );
+
+  // Permission prompt component
+  const PermissionPrompt = () => (
+    <TouchableOpacity
+      style={styles.permissionPrompt}
+      onPress={async () => {
+        Alert.alert(
+          '디버그 정보',
+          `isAvailable: ${isAvailable}\nhasPermissions: ${hasPermissions()}\nerror: ${error || 'none'}`,
+          [
+            {text: '취소', style: 'cancel'},
+            {text: '연동하기', onPress: initializeHealthData},
+          ],
+        );
+      }}>
+      <Text style={styles.permissionIcon}>
+        {Platform.OS === 'ios' ? '❤️' : '💚'}
+      </Text>
+      <View style={styles.permissionTextContainer}>
+        <Text style={styles.permissionTitle}>건강 데이터 연동하기</Text>
+        <Text style={styles.permissionDesc}>
+          {Platform.OS === 'ios'
+            ? 'Apple Health에서 걸음 수와 수면 데이터를 가져옵니다'
+            : 'Health Connect에서 걸음 수와 수면 데이터를 가져옵니다'}
+        </Text>
+      </View>
+      <Text style={styles.permissionArrow}>→</Text>
+    </TouchableOpacity>
   );
 
   // Detail Report Modal
@@ -150,10 +312,11 @@ export default function RecordScreen() {
       visible={showDetailModal}
       animationType="slide"
       presentationStyle="pageSheet"
-      onRequestClose={() => setShowDetailModal(false)}
-    >
+      onRequestClose={() => setShowDetailModal(false)}>
       <SafeAreaView style={styles.modalContainer}>
-        <ScrollView style={styles.modalScroll} showsVerticalScrollIndicator={false}>
+        <ScrollView
+          style={styles.modalScroll}
+          showsVerticalScrollIndicator={false}>
           {/* Modal Header */}
           <View style={styles.modalHeader}>
             <View style={styles.modalHeaderContent}>
@@ -165,8 +328,7 @@ export default function RecordScreen() {
             </View>
             <TouchableOpacity
               style={styles.closeButton}
-              onPress={() => setShowDetailModal(false)}
-            >
+              onPress={() => setShowDetailModal(false)}>
               <Text style={styles.closeButtonText}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -176,20 +338,23 @@ export default function RecordScreen() {
             <View style={styles.detailSectionHeader}>
               <Text style={styles.detailSectionTitle}>주간 약 복용 순응도</Text>
               <Text style={styles.complianceText}>
-                이번 주 순응도 <Text style={styles.complianceValue}>{data.weeklyMedication.compliance}%</Text>
+                이번 주 순응도{' '}
+                <Text style={styles.complianceValue}>
+                  {data.weeklyMedication.compliance}%
+                </Text>
               </Text>
             </View>
             <View style={styles.medicationTable}>
               {/* Header row */}
               <View style={styles.medicationRow}>
-                {DAYS.map((day) => (
+                {DAYS.map(day => (
                   <View key={day} style={styles.medicationCell}>
                     <Text style={styles.dayLabel}>{day}</Text>
                   </View>
                 ))}
               </View>
               {/* Data rows */}
-              {[0, 1].map((row) => (
+              {[0, 1].map(row => (
                 <View key={row} style={styles.medicationRow}>
                   {data.weeklyMedication.data.map((dayData, dayIndex) => (
                     <View key={dayIndex} style={styles.medicationCell}>
@@ -199,8 +364,7 @@ export default function RecordScreen() {
                           dayData[row]
                             ? styles.checkCircleCompleted
                             : styles.checkCircleMissed,
-                        ]}
-                      >
+                        ]}>
                         <Text style={styles.checkMark}>
                           {dayData[row] ? '✓' : ''}
                         </Text>
@@ -219,7 +383,9 @@ export default function RecordScreen() {
           <View style={styles.detailSection}>
             <View style={styles.detailSectionHeader}>
               <Text style={styles.detailSectionTitle}>주간 수면량 그래프</Text>
-              <Text style={styles.averageText}>평균 {data.sleep.hours}시간</Text>
+              <Text style={styles.averageText}>
+                평균 {data.averageSleep.toFixed(1)}시간
+              </Text>
             </View>
             <View style={styles.sleepChart}>
               <View style={styles.yAxis}>
@@ -234,10 +400,12 @@ export default function RecordScreen() {
                     <View
                       style={[
                         styles.chartBar,
-                        { height: (hours / 10) * 120 },
+                        {height: Math.max((hours / 10) * 120, 4)},
                       ]}
                     />
-                    <Text style={styles.barLabel}>{['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index]}</Text>
+                    <Text style={styles.barLabel}>
+                      {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][index]}
+                    </Text>
                   </View>
                 ))}
               </View>
@@ -250,13 +418,17 @@ export default function RecordScreen() {
             <View style={styles.activitySummary}>
               <View style={styles.activityCard}>
                 <Text style={styles.activityIcon}>👣</Text>
-                <Text style={styles.activityLabel}>총 단계</Text>
-                <Text style={styles.activityValue}>{data.weeklySteps.toLocaleString()}보</Text>
+                <Text style={styles.activityLabel}>총 걸음</Text>
+                <Text style={styles.activityValue}>
+                  {data.weeklySteps.toLocaleString()}보
+                </Text>
               </View>
               <View style={styles.activityCard}>
                 <Text style={styles.activityIcon}>⏱️</Text>
-                <Text style={styles.activityLabel}>활동분분</Text>
-                <Text style={styles.activityValue}>{data.weeklyActivityMinutes}분</Text>
+                <Text style={styles.activityLabel}>활동 시간</Text>
+                <Text style={styles.activityValue}>
+                  {data.weeklyActivityMinutes}분
+                </Text>
               </View>
             </View>
           </View>
@@ -280,15 +452,33 @@ export default function RecordScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }>
         {/* Header */}
         <View style={styles.header}>
           <CharacterAvatar stage={stage} size={64} />
           <View style={styles.headerTextContainer}>
             <Text style={styles.headerTitle}>주간 건강 리포트</Text>
-            <Text style={styles.headerSubtitle}>이번 주 훌륭해요!</Text>
+            <Text style={styles.headerSubtitle}>
+              {hasPermissions() ? '이번 주 훌륭해요!' : '건강 데이터를 연동해보세요'}
+            </Text>
           </View>
         </View>
+
+        {/* Loading indicator */}
+        {isLoading && !weeklyData && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#7EBDC3" />
+            <Text style={styles.loadingText}>건강 데이터 로딩 중...</Text>
+          </View>
+        )}
+
+        {/* Permission prompt if needed - always show for debugging */}
+        {!hasPermissions() && !isLoading && <PermissionPrompt />}
 
         {/* Total Score Card */}
         <View style={styles.scoreCard}>
@@ -302,38 +492,48 @@ export default function RecordScreen() {
             title="약 복용"
             value={`오늘 ${data.medication.completed}/${data.medication.total} 복용 완료`}
             status={data.medication.status}
+            onRankingPress={() => openRankingModal('medication')}
           />
           <SummaryCard
             icon="🌙"
             title="수면"
-            value={`${data.sleep.hours}시간`}
+            value={data.sleep.hours > 0 ? `${data.sleep.hours.toFixed(1)}시간` : '-'}
             status={data.sleep.status}
+            statusColor={data.sleep.hours >= 7 ? '#4CAF50' : data.sleep.hours >= 6 ? '#FF9800' : '#F44336'}
             extra={renderMiniBarChart()}
+            onRankingPress={() => openRankingModal('sleep')}
           />
           <SummaryCard
             icon="👟"
             title="걸음"
-            value={`${data.steps.count.toLocaleString()}보`}
+            value={data.steps.count > 0 ? `${data.steps.count.toLocaleString()}보` : '-'}
             status={data.steps.status}
+            statusColor={data.steps.count >= 7000 ? '#4CAF50' : data.steps.count >= 5000 ? '#FF9800' : '#F44336'}
+            onRankingPress={() => openRankingModal('steps')}
           />
           <SummaryCard
             icon="🥕"
             title="식단"
             value={data.diet.status}
             status={data.diet.rating}
+            onRankingPress={() => openRankingModal('diet')}
           />
         </View>
 
         {/* View Full Report Button */}
         <TouchableOpacity
           style={styles.fullReportButton}
-          onPress={() => setShowDetailModal(true)}
-        >
+          onPress={() => setShowDetailModal(true)}>
           <Text style={styles.fullReportButtonText}>전체 리포트 보기</Text>
         </TouchableOpacity>
       </ScrollView>
 
       <DetailReportModal />
+      <RankingModal
+        visible={rankingModalVisible}
+        onClose={closeRankingModal}
+        data={selectedRankingType ? getRankingData(selectedRankingType) : null}
+      />
     </SafeAreaView>
   );
 }
@@ -366,6 +566,49 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#E8F5E9',
     marginTop: 4,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: '#666',
+  },
+  permissionPrompt: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF',
+    marginHorizontal: 20,
+    marginTop: 16,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 2,
+    borderColor: '#7EBDC3',
+    borderStyle: 'dashed',
+  },
+  permissionIcon: {
+    fontSize: 32,
+  },
+  permissionTextContainer: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  permissionTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  permissionDesc: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  permissionArrow: {
+    fontSize: 20,
+    color: '#7EBDC3',
+    fontWeight: 'bold',
   },
   scoreCard: {
     backgroundColor: '#B8E0E5',
@@ -401,13 +644,13 @@ const styles = StyleSheet.create({
     borderLeftColor: '#E0E0E0',
     justifyContent: 'center',
     alignItems: 'center',
-    transform: [{ rotate: '45deg' }],
+    transform: [{rotate: '45deg'}],
   },
   scoreText: {
     fontSize: 28,
     fontWeight: 'bold',
     color: '#333',
-    transform: [{ rotate: '-45deg' }],
+    transform: [{rotate: '-45deg'}],
   },
   scoreLabel: {
     fontSize: 14,
@@ -426,7 +669,7 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
@@ -460,6 +703,18 @@ const styles = StyleSheet.create({
   miniBar: {
     width: 6,
     borderRadius: 3,
+  },
+  rankingButton: {
+    backgroundColor: '#5B9BD5',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    marginLeft: 8,
+  },
+  rankingButtonText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '600',
   },
   fullReportButton: {
     marginHorizontal: 20,
