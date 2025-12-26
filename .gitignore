@@ -1,0 +1,16 @@
+# Claude Code / Specify folders
+.claude/
+.specify/
+
+# Test project
+CareNaviTest/
+
+# Spec documents (internal)
+specs/
+
+# OS files
+.DS_Store
+._*
+
+# CLAUDE.md (internal instructions)
+CLAUDE.md
