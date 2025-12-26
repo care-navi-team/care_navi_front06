@@ -1,4 +1,3 @@
-// T097: Recommendation section component for StoreScreen
 import React from 'react';
 import {
   View,

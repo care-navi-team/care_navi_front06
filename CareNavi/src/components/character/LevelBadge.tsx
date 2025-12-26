@@ -1,4 +1,3 @@
-// T065: Level badge component
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 

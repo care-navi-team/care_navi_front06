@@ -1,4 +1,3 @@
-// T021: Root Navigator with bottom tabs - Redesigned for Stitch UI
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';

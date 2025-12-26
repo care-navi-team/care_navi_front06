@@ -1,4 +1,3 @@
-// T064: Character avatar component - Updated with glow effect
 import React from 'react';
 import { View, Image, StyleSheet, ImageSourcePropType, Animated } from 'react-native';
 import { CharacterStage } from '../../types';

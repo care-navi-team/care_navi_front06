@@ -1,4 +1,4 @@
-// T062: Growth service for character progression
+
 import { supabase } from './supabase';
 import { GrowthProfile, CharacterStage } from '../types';
 import { calculateLevel, calculateStage, xpForLevel } from '../utils/helpers';

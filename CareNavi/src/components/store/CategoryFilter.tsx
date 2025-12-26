@@ -1,4 +1,3 @@
-// T086: Category filter component
 import React from 'react';
 import {
   View,

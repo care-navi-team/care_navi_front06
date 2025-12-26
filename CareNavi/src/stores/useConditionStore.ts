@@ -1,4 +1,3 @@
-// T039: Condition store using Zustand
 import { create } from 'zustand';
 import { ConditionRecord, ConditionAnalysis } from '../types';
 import * as conditionService from '../services/conditionService';

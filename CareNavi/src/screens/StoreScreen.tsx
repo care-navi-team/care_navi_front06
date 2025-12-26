@@ -1,5 +1,3 @@
-// T085: Store Screen - Product browsing with grid, search, filters
-// T097: Add RecommendationSection
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import SearchBar from '../components/store/SearchBar';
@@ -58,7 +56,7 @@ export default function StoreScreen() {
 
   const handleRecommendationPress = useCallback(
     async (recommendation: ProductRecommendation) => {
-      // T099: Track click
+      // Track click
       await trackClick(recommendation.id);
 
       if (recommendation.product) {

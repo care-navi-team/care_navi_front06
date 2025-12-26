@@ -1,4 +1,3 @@
-// T041: Chat input component
 import React, { useState } from 'react';
 import {
   View,

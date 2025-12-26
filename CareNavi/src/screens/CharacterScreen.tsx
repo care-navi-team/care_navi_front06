@@ -1,4 +1,3 @@
-// T068: Character Screen - Character growth display with avatar, level, XP
 import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, ScrollView } from 'react-native';
 import CharacterAvatar from '../components/character/CharacterAvatar';

@@ -1,4 +1,4 @@
-// T036: Daily state service
+
 import { supabase } from './supabase';
 import { DailyState, DailyStateValue } from '../types';
 import { getTodayDate } from '../utils/helpers';

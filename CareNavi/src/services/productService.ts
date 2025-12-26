@@ -1,4 +1,3 @@
-// T081: Product service for store functionality
 import { supabase } from './supabase';
 import { Product, ProductCategory } from '../types';
 

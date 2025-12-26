@@ -1,4 +1,3 @@
-// T083: Product card component
 import React from 'react';
 import {
   View,

@@ -1,4 +1,3 @@
-// T087: Search bar component
 import React, { useState, useCallback } from 'react';
 import {
   View,

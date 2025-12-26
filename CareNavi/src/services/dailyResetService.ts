@@ -1,4 +1,4 @@
-// T073: Daily reset service for midnight state reset
+
 import { supabase } from './supabase';
 import { getTodayDate } from '../utils/helpers';
 import { DailyState } from '../types';

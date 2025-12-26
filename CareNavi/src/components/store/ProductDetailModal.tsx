@@ -1,4 +1,3 @@
-// T088: Product detail modal component
 import React from 'react';
 import {
   View,

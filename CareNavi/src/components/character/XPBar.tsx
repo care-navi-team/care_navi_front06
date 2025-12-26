@@ -1,4 +1,3 @@
-// T066: XP progress bar component
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 

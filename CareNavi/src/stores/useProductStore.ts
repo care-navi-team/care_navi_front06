@@ -1,4 +1,3 @@
-// T082: Product store using Zustand
 import { create } from 'zustand';
 import { Product, ProductCategory } from '../types';
 import {

@@ -1,4 +1,3 @@
-// T103: Toast/notification component
 import React, { useEffect, useRef } from 'react';
 import {
   View,

@@ -1,4 +1,3 @@
-// T022: Profile Screen - User settings
 import React, { useState } from 'react';
 import {
   View,

@@ -1,4 +1,4 @@
-// T050: Mission service
+
 import { supabase } from './supabase';
 import { Mission, MissionType, ConditionAnalysis } from '../types';
 import { SurveyData } from '../types/survey';
@@ -17,7 +17,7 @@ interface GenerateMissionsResponse {
   missions: Mission[];
 }
 
-// T056: Fallback missions when AI generation fails
+
 const FALLBACK_MISSIONS: Omit<Mission, 'id' | 'user_id' | 'condition_record_id' | 'date' | 'created_at'>[] = [
   {
     type: 'easy',
@@ -56,7 +56,7 @@ export async function generateMissions(
 ): Promise<GenerateMissionsResponse> {
   const today = getTodayDate();
 
-  // T055: Try AI generation first (with survey data for personalization)
+  // Try AI generation first (with survey data for personalization)
   let generatedMissions: Partial<Mission>[];
   try {
     generatedMissions = await generateMissionsWithAI(request.analysis, request.surveyData);

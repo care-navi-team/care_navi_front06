@@ -1,4 +1,3 @@
-// T019: Auth store using Zustand
 import { create } from 'zustand';
 import { Session } from '@supabase/supabase-js';
 import { User } from '../types';

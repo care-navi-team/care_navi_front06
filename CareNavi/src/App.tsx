@@ -1,6 +1,3 @@
-// T023: App entry point with NavigationContainer
-// T074: Auto-check reset on app launch
-// T075: Periodic reset check on app state change
 import React, { useEffect, useCallback, useRef, useState } from 'react';
 import { StatusBar, AppState, AppStateStatus, View, ActivityIndicator, StyleSheet } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
@@ -25,7 +22,7 @@ export default function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [checkingSurvey, setCheckingSurvey] = useState(true);
 
-  // T074: Check daily reset on app launch
+  // Check daily reset on app launch
   const checkDailyReset = useCallback(async () => {
     if (!session?.user?.id) return;
 
@@ -59,7 +56,7 @@ export default function App() {
     return () => subscription.unsubscribe();
   }, [setSession, setLoading]);
 
-  // T074: Check reset on app launch when session is available
+  // Check reset on app launch when session is available
   useEffect(() => {
     if (session?.user?.id) {
       checkDailyReset();
@@ -91,7 +88,7 @@ export default function App() {
     setShowOnboarding(false);
   }, []);
 
-  // T075: Check reset when app comes to foreground
+  // Check reset when app comes to foreground
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (nextAppState: AppStateStatus) => {
       if (

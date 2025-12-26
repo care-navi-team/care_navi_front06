@@ -1,4 +1,4 @@
-// T094: Recommendation service for AI-based product recommendations
+
 import { supabase } from './supabase';
 import { ProductRecommendation, ConditionAnalysis, Product } from '../types';
 import { getRecommendedProducts } from './productService';

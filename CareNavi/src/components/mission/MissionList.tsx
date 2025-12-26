@@ -1,4 +1,3 @@
-// T053: Mission list component
 import React from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import MissionCard from './MissionCard';

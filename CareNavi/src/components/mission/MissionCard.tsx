@@ -1,4 +1,3 @@
-// T052: Mission card component
 import React from 'react';
 import {
   View,

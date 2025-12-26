@@ -1,4 +1,3 @@
-// T038: Daily store using Zustand
 import { create } from 'zustand';
 import { DailyState, DailyStateValue } from '../types';
 import * as dailyStateService from '../services/dailyStateService';

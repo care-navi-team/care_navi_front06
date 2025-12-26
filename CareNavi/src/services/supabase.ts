@@ -1,4 +1,4 @@
-// T017: Supabase client with AsyncStorage auth persistence
+
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ENV } from '../config/env';

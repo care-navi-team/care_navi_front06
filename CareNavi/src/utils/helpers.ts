@@ -1,4 +1,3 @@
-// T018: Helper functions for level/stage calculation and date utilities
 import { CharacterStage } from '../types';
 import {
   BASE_XP_FOR_LEVEL,

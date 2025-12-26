@@ -1,4 +1,3 @@
-// T102: Global error boundary component
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import {
   View,

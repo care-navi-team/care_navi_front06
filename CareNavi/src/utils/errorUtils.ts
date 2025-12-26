@@ -1,4 +1,3 @@
-// T101: Error handling utilities
 import { ServiceError } from '../types';
 
 /**

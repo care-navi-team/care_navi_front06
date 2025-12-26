@@ -1,4 +1,3 @@
-// T042: Home Screen - Redesigned based on Stitch wireframe
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   View,

@@ -1,4 +1,3 @@
-// T096: Recommendation card component
 import React from 'react';
 import {
   View,

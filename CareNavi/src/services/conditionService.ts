@@ -1,4 +1,4 @@
-// T037: Condition service
+
 import { z } from 'zod';
 import { supabase } from './supabase';
 import { analyzeConditionWithAI } from './geminiService';
@@ -10,7 +10,7 @@ import {
   DEFAULT_CONDITION_ANALYSIS,
 } from '../utils/constants';
 
-// T044: Zod validation schema
+
 const conditionInputSchema = z.object({
   rawInput: z
     .string()
@@ -44,7 +44,7 @@ export async function analyzeCondition(
 
   const today = getTodayDate();
 
-  // T043: Analyze with AI (with improved error handling)
+  // Analyze with AI (with improved error handling)
   const analysisResult = await analyzeConditionWithAI(request.rawInput);
   const { analysis, usedFallback, errorMessage } = analysisResult;
 

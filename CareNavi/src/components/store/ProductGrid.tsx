@@ -1,4 +1,3 @@
-// T084: Product grid component
 import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import ProductCard from './ProductCard';

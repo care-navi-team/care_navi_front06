@@ -1,4 +1,3 @@
-// T040: Chat bubble component
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 

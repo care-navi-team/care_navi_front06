@@ -1,4 +1,4 @@
-// T020: Auth service for signup, signin, signout
+
 import { supabase } from './supabase';
 import { User, Character, SignUpRequest, SignInRequest } from '../types';
 import { DEFAULT_CHARACTER_NAME, DEFAULT_CHARACTER_STAGE } from '../utils/constants';
